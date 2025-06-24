@@ -159,7 +159,7 @@
       <button class="service-btn" onclick="selectTier('shared')">Shared</button>
       <button class="service-btn" onclick="selectTier('personal')">Personal</button>
     </div>
-    <div id="pay-instructions" style="margin-top: 30px;">
+    <div id="pay-instructions" style="margin-top: 30px;display: none;">
   <div class="instructions">
       <p><strong>Step 1:</strong> Click to copy payment number:</p>
       <div class="copy-box" onclick="copyToClipboard('01881738485')">01881738485</div>
@@ -205,6 +205,7 @@
       const key = `${selectedService}_${selectedTier}`;
       price = pricing[key];
       document.getElementById("price").textContent = price;
+document.getElementById("pay-instructions").style.display = "block";
       document.getElementById("checkout").style.display = "block";
     }
 
