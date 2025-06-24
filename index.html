@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Access Shop</title>
+  <style>
+    :root {
+      --primary-color: #ff6b00;
+      --secondary-color: #222;
+      --bg-color: #fefefe;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: var(--primary-color);
+      font-size: 2.2rem;
+      margin-bottom: 30px;
+    }
+
+    .service-btn {
+      padding: 14px 24px;
+      margin: 12px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      font-size: 17px;
+      box-shadow: 0 6px 10px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .service-btn:hover {
+      transform: scale(1.08);
+      background-color: #ff8b33;
+    }
+
+    .tier-options, .checkout, .result, .error {
+      display: none;
+      margin-top: 30px;
+    }
+
+    .input-group {
+      margin: 14px 0;
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      width: 80%;
+      max-width: 300px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button#submit {
+      background: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button#submit:hover {
+      background: #45c768;
+    }
+
+    .timer {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .account-box {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-top: 25px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+
+    .account-box p {
+      margin: 6px 0;
+      font-size: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .service-btn {
+        display: block;
+        width: 80%;
+        margin: 12px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎟️ Buy Streaming Access</h1>
+
+  <div>
+    <button class="service-btn" onclick="selectService('crunchyroll')">Crunchyroll</button>
+    <button class="service-btn" onclick="selectService('netflix')">Netflix</button>
+  </div>
+
+  <div class="tier-options" id="tiers">
+    <h3>Select Plan:</h3>
+    <button class="service-btn" onclick="selectTier('shared')">Shared</button>
+    <button class="service-btn" onclick="selectTier('personal')">Personal</button>
+  </div>
+
+  <div class="checkout" id="checkout">
+    <p><strong>Send payment to:</strong> 01881738485</p>
+    <p>💳 Amount: <span id="price"></span> Tk (±10%)</p>
+
+    <div class="input-group">
+      <input type="text" id="trxid" placeholder="Enter your bKash TrxID" />
+    </div>
+    <div class="input-group">
+      <button id="submit" onclick="startTimer()">Submit</button>
+    </div>
+    <div class="timer" id="timer"></div>
+  </div>
+
+  <div class="result" id="result"></div>
+  <div class="error" id="error" style="color: red;"></div>
+
+  <script>
+    let selectedService = "";
+    let selectedTier = "";
+    let price = 0;
+
+    const pricing = {
+      crunchyroll_shared: 50,
+      crunchyroll_personal: 100,
+      netflix_shared: 150,
+      netflix_personal: 30
+    };
+
+    function selectService(service) {
+      selectedService = service;
+      document.getElementById("tiers").style.display = "block";
+    }
+
+    function selectTier(tier) {
+      selectedTier = tier;
+      const key = `${selectedService}_${selectedTier}`;
+      price = pricing[key];
+      document.getElementById("price").textContent = price;
+      document.getElementById("checkout").style.display = "block";
+    }
+
+    function startTimer() {
+      const trxid = document.getElementById("trxid").value.trim();
+      if (!trxid) {
+        showError("Please enter a valid TrxID.");
+        return;
+      }
+
+      document.getElementById("error").style.display = "none";
+      let seconds = 60;
+      document.getElementById("timer").textContent = `Checking in ${seconds}s...`;
+      const interval = setInterval(() => {
+        seconds--;
+        document.getElementById("timer").textContent = `Checking in ${seconds}s...`;
+        if (seconds <= 0) {
+          clearInterval(interval);
+          verifyPayment(trxid);
+        }
+      }, 1000);
+    }
+
+    function verifyPayment(trxid) {
+      const serviceKey = `${selectedService}_${selectedTier}`;
+      const url = `https://script.google.com/macros/s/AKfycbyLjru6Gqm9qlXUWgDYPCMaGGeEIam0OrWRguPVTGYj73eI6zyt745aZaWRLreVJmGt/exec?trxid=${encodeURIComponent(trxid)}&service=${serviceKey}`;
+
+      fetch(url)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            const acc = data.account;
+            document.getElementById("result").style.display = "block";
+            document.getElementById("result").innerHTML = `
+              <div class='account-box'>
+                <h3>✅ Account Ready!</h3>
+                <p><strong>Email:</strong> ${acc.mail}</p>
+                <p><strong>Password:</strong> ${acc.pass}</p>
+                ${acc.profile ? `<p><strong>Profile:</strong> ${acc.profile}</p>` : ""}
+              </div>
+            `;
+          } else {
+            showError(data.message || "Something went wrong.");
+          }
+        })
+        .catch(() => showError("Server error. Try again later."));
+    }
+
+    function showError(msg) {
+      const e = document.getElementById("error");
+      e.style.display = "block";
+      e.textContent = msg;
+    }
+  </script>
+</body>
+</html>
