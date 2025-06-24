@@ -15,19 +15,56 @@
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg-color);
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      animation: fadeIn 0.8s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container {
+      max-width: 500px;
+      width: 90%;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      padding: 30px;
       text-align: center;
+      animation: fadeIn 1s ease-in-out;
     }
 
     h1 {
       color: var(--primary-color);
       font-size: 2.2rem;
-      margin-bottom: 30px;
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      background: #fff6e5;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 15px;
+    }
+
+    .copy-box {
+      background: #eee;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 10px 0;
+      cursor: pointer;
+      user-select: all;
     }
 
     .service-btn {
       padding: 14px 24px;
-      margin: 12px;
+      margin: 12px 6px;
       border-radius: 12px;
       border: none;
       background: var(--primary-color);
@@ -54,8 +91,7 @@
 
     input[type="text"] {
       padding: 12px;
-      width: 80%;
-      max-width: 300px;
+      width: 100%;
       border: 2px solid #ccc;
       border-radius: 8px;
       font-size: 16px;
@@ -82,12 +118,11 @@
     }
 
     .account-box {
-      background: #fff;
-      padding: 25px;
+      background: #f9f9f9;
+      padding: 20px;
       border-radius: 12px;
-      display: inline-block;
-      margin-top: 25px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      margin-top: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
 
     .account-box p {
@@ -95,44 +130,58 @@
       font-size: 15px;
     }
 
+    .error {
+      color: red;
+    }
+
     @media (max-width: 600px) {
       .service-btn {
         display: block;
-        width: 80%;
-        margin: 12px auto;
+        width: 100%;
+        margin: 10px 0;
       }
     }
   </style>
 </head>
 <body>
-  <h1>🎟️ Buy Streaming Access</h1>
+  <div class="container">
+    <h1>🎟️ Buy Streaming Access</h1>
 
-  <div>
-    <button class="service-btn" onclick="selectService('crunchyroll')">Crunchyroll</button>
-    <button class="service-btn" onclick="selectService('netflix')">Netflix</button>
-  </div>
+    
 
-  <div class="tier-options" id="tiers">
-    <h3>Select Plan:</h3>
-    <button class="service-btn" onclick="selectTier('shared')">Shared</button>
-    <button class="service-btn" onclick="selectTier('personal')">Personal</button>
-  </div>
-
-  <div class="checkout" id="checkout">
-    <p><strong>Send payment to:</strong> 01881738485</p>
-    <p>💳 Amount: <span id="price"></span> Tk (±10%)</p>
-
-    <div class="input-group">
-      <input type="text" id="trxid" placeholder="Enter your bKash TrxID" />
+    <div>
+      <button class="service-btn" onclick="selectService('crunchyroll')">Crunchyroll</button>
+      <button class="service-btn" onclick="selectService('netflix')">Netflix</button>
     </div>
-    <div class="input-group">
-      <button id="submit" onclick="startTimer()">Submit</button>
-    </div>
-    <div class="timer" id="timer"></div>
-  </div>
 
-  <div class="result" id="result"></div>
-  <div class="error" id="error" style="color: red;"></div>
+    <div class="tier-options" id="tiers">
+      <h3>Select Plan:</h3>
+      <button class="service-btn" onclick="selectTier('shared')">Shared</button>
+      <button class="service-btn" onclick="selectTier('personal')">Personal</button>
+    </div>
+    <div id="pay-instructions" style="margin-top: 30px;">
+  <div class="instructions">
+      <p><strong>Step 1:</strong> Click to copy payment number:</p>
+      <div class="copy-box" onclick="copyToClipboard('01881738485')">01881738485</div>
+      <p><strong>Step 2:</strong> Send money via bKash</p>
+      <p><strong>Step 3:</strong> Enter your TrxID below</p>
+      <p><strong>Need help?</strong> Contact us on WhatsApp: <a href="https://wa.me/8801881738485" target="_blank">01881738485</a></p>
+    </div>
+
+    <div class="checkout" id="checkout">
+      <p><strong>Amount to send:</strong> <span id="price"></span> Tk</p>
+      <div class="input-group">
+        <input type="text" id="trxid" placeholder="Enter your bKash TrxID" />
+      </div>
+      <div class="input-group">
+        <button id="submit" onclick="startTimer()">Submit</button>
+      </div>
+      <div class="timer" id="timer"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="error" id="error"></div>
+  </div>
 
   <script>
     let selectedService = "";
@@ -167,7 +216,7 @@
       }
 
       document.getElementById("error").style.display = "none";
-      let seconds = 60;
+      let seconds = 10;
       document.getElementById("timer").textContent = `Checking in ${seconds}s...`;
       const interval = setInterval(() => {
         seconds--;
@@ -208,6 +257,12 @@
       const e = document.getElementById("error");
       e.style.display = "block";
       e.textContent = msg;
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Number copied to clipboard!");
+      });
     }
   </script>
 </body>
